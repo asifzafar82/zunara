@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom - IVF Support Companion</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🌸 Bloom</h1>
+        <p>You're not alone in this journey</p>
+    </div>
+
+    <div class="stage-selector">
+        <label>📍 Where are you in your IVF journey?</label>
+        <select id="stage">
+            <option value="preparing">Preparing / Just Starting</option>
+            <option value="stimulation">Stimulation Phase</option>
+            <option value="retrieval">Egg Retrieval</option>
+            <option value="transfer">Embryo Transfer</option>
+            <option value="tww">Two-Week Wait 😰</option>
+            <option value="results">Just Got Results</option>
+            <option value="failed">Dealing with a Failed Cycle</option>
+        </select>
+    </div>
+
+    <div class="mood-selector">
+        <label>💭 How are you feeling right now?</label>
+        <div class="mood-buttons">
+            <button class="mood-btn" onclick="selectMood(this)">😰 Anxious</button>
+            <button class="mood-btn" onclick="selectMood(this)">😢 Sad</button>
+            <button class="mood-btn" onclick="selectMood(this)">😤 Frustrated</button>
+            <button class="mood-btn" onclick="selectMood(this)">😶 Numb</button>
+            <button class="mood-btn" onclick="selectMood(this)">🙂 Hopeful</button>
+            <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="messages">
+            <div class="message bot">
+                Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.
+            </div>
+        </div>
+        <div class="typing" id="typing" style="display:none">Typing...</div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Talk to me..."
+                onkeypress="if(event.key==='Enter') sendMessage()"/>
+            <button onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+  </html>

@@ -52,4 +52,35 @@ function addMessage(text, sender) {
     div.textContent = text;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-      }
+}
+
+function sendFeedback(type) {
+    document.querySelector('.feedback-buttons').style.display = 'none';
+    document.getElementById('feedbackThanks').style.display = 'block';
+    
+    // Send feedback to server
+    fetch('/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback: type })
+    });
+}
+
+// Show feedback after 3 messages
+let messageCount = 0;
+const originalAddMessage = addMessage;
+addMessage = function(text, sender) {
+    originalAddMessage(text, sender);
+    if (sender === 'bot') {
+        messageCount++;
+        if (messageCount >= 3) {
+            document.getElementById('feedbackContainer').style.display = 'block';
+        }
+    }
+}
+
+function startChat() {
+    document.getElementById('welcomeOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+}
+

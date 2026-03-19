@@ -2,63 +2,113 @@
 <html>
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y55SC76ZLN"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Y55SC76ZLN');
-</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y55SC76ZLN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y55SC76ZLN');
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bloom - IVF Support Companion</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="header">
-        <h1>🌸 Bloom</h1>
-        <p>You're not alone in this journey</p>
-    </div>
 
-    <div class="stage-selector">
-        <label>📍 Where are you in your IVF journey?</label>
-        <select id="stage">
-            <option value="preparing">Preparing / Just Starting</option>
-            <option value="stimulation">Stimulation Phase</option>
-            <option value="retrieval">Egg Retrieval</option>
-            <option value="transfer">Embryo Transfer</option>
-            <option value="tww">Two-Week Wait 😰</option>
-            <option value="results">Just Got Results</option>
-            <option value="failed">Dealing with a Failed Cycle</option>
-        </select>
-    </div>
+    <!-- Welcome Overlay -->
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-box">
+            <h1>🌸 Bloom</h1>
+            <p class="welcome-tagline">You're not alone in this journey</p>
+            
+            <div class="trust-badges">
+                <span>🔒 100% Private</span>
+                <span>💬 Real AI Conversation</span>
+                <span>🆓 Completely Free</span>
+            </div>
 
-    <div class="mood-selector">
-        <label>💭 How are you feeling right now?</label>
-        <div class="mood-buttons">
-            <button class="mood-btn" onclick="selectMood(this)">😰 Anxious</button>
-            <button class="mood-btn" onclick="selectMood(this)">😢 Sad</button>
-            <button class="mood-btn" onclick="selectMood(this)">😤 Frustrated</button>
-            <button class="mood-btn" onclick="selectMood(this)">😶 Numb</button>
-            <button class="mood-btn" onclick="selectMood(this)">🙂 Hopeful</button>
-            <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
+            <p class="welcome-desc">
+                Bloom is your personal emotional support companion — available 24/7, especially at those hard 2am moments during IVF.
+            </p>
+
+            <p class="welcome-desc">
+                Just tell me how you're feeling. No judgment. No advice unless you want it. Just someone who listens. 💕
+            </p>
+
+            <button class="start-btn" onclick="startChat()">I'm ready to talk 🌸</button>
         </div>
     </div>
 
-    <div class="chat-container">
-        <div class="chat-messages" id="messages">
-            <div class="message bot">
-                Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.
+    <!-- Main App -->
+    <div class="main-app" id="mainApp" style="display:none">
+        <div class="header">
+            <h1>🌸 Bloom</h1>
+            <p>You're not alone in this journey</p>
+        </div>
+
+        <div class="trust-strip">
+            <span>🔒 Private</span>
+            <span>💬 AI Support</span>
+            <span>🆓 Free</span>
+            <span>🌸 Built for IVF</span>
+        </div>
+
+        <div class="stage-selector">
+            <label>📍 Where are you in your IVF journey?</label>
+            <select id="stage">
+                <option value="preparing">Preparing / Just Starting</option>
+                <option value="stimulation">Stimulation Phase</option>
+                <option value="retrieval">Egg Retrieval</option>
+                <option value="transfer">Embryo Transfer</option>
+                <option value="tww">Two-Week Wait 😰</option>
+                <option value="results">Just Got Results</option>
+                <option value="failed">Dealing with a Failed Cycle</option>
+            </select>
+        </div>
+
+        <div class="mood-selector">
+            <label>💭 How are you feeling right now?</label>
+            <div class="mood-buttons">
+                <button class="mood-btn" onclick="selectMood(this)">😰 Anxious</button>
+                <button class="mood-btn" onclick="selectMood(this)">😢 Sad</button>
+                <button class="mood-btn" onclick="selectMood(this)">😤 Frustrated</button>
+                <button class="mood-btn" onclick="selectMood(this)">😶 Numb</button>
+                <button class="mood-btn" onclick="selectMood(this)">🙂 Hopeful</button>
+                <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
             </div>
         </div>
-        <div class="typing" id="typing" style="display:none">Typing...</div>
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Talk to me..."
-                onkeypress="if(event.key==='Enter') sendMessage()"/>
-            <button onclick="sendMessage()">➤</button>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="messages">
+                <div class="message bot">
+                    Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.
+                </div>
+                <div class="message hint">
+                    💡 Try saying: "I'm so anxious about my results" or "I can't sleep during the two week wait"
+                </div>
+            </div>
+            <div class="typing" id="typing" style="display:none">Typing...</div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Tell me how you're feeling..."
+                    onkeypress="if(event.key==='Enter') sendMessage()"/>
+                <button onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="feedback-container" id="feedbackContainer" style="display:none">
+            <p>Was Bloom helpful today? 💕</p>
+            <div class="feedback-buttons">
+                <button class="feedback-btn" onclick="sendFeedback('helpful')">👍 Yes, it helped</button>
+                <button class="feedback-btn" onclick="sendFeedback('not_helpful')">👎 Not really</button>
+            </div>
+            <div id="feedbackThanks" style="display:none">
+                <p>Thank you! Your feedback helps us improve 🌸</p>
+            </div>
         </div>
     </div>
 
     <script src="/static/app.js"></script>
 </body>
-  </html>
+</html>
+

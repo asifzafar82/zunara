@@ -4,15 +4,96 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #fce4ec, #f8bbd0);
     min-height: 100vh;
+}
+
+/* ===== WELCOME SCREEN ===== */
+#welcomeScreen {
+    min-height: 100vh;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.welcome-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(233,30,140,0.15);
+}
+
+.welcome-logo {
+    font-size: 56px;
+    margin-bottom: 8px;
+}
+
+.welcome-box h1 {
+    color: #880e4f;
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.welcome-tagline {
+    color: #ad1457;
+    font-size: 15px;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.trust-badges {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.trust-badges span {
+    background: #fce4ec;
+    color: #880e4f;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.welcome-desc {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.start-btn {
+    background: #e91e8c;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 12px;
+}
+
+/* ===== MAIN APP ===== */
+#mainApp {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    min-height: 100vh;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 480px;
 }
 
 .header h1 {
@@ -24,6 +105,26 @@ body {
     color: #ad1457;
     font-size: 14px;
     margin-top: 5px;
+}
+
+.trust-strip {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.trust-strip span {
+    background: white;
+    color: #880e4f;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .stage-selector {
@@ -86,7 +187,6 @@ body {
     color: #ad1457;
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .mood-btn.selected {
@@ -135,6 +235,16 @@ body {
     color: white;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
+}
+
+.message.hint {
+    background: #fff9c4;
+    color: #666;
+    font-size: 12px;
+    align-self: center;
+    text-align: center;
+    border-radius: 12px;
+    max-width: 90%;
 }
 
 .chat-input {
@@ -207,135 +317,10 @@ body {
     color: #ad1457;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.feedback-btn:hover {
-    background: #e91e8c;
-    color: white;
-    border-color: #e91e8c;
 }
 
 #feedbackThanks p {
     color: #e91e8c;
     font-size: 14px;
     margin-top: 10px;
-}
-
-/* Welcome Overlay */
-.welcome-overlay {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-}
-
-.welcome-box {
-    background: white;
-    border-radius: 24px;
-    padding: 32px 24px;
-    max-width: 480px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 8px 30px rgba(233,30,140,0.15);
-}
-
-.welcome-box h1 {
-    color: #880e4f;
-    font-size: 32px;
-    margin-bottom: 8px;
-}
-
-.welcome-tagline {
-    color: #ad1457;
-    font-size: 16px;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
-.trust-badges {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.trust-badges span {
-    background: #fce4ec;
-    color: #880e4f;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.welcome-desc {
-    color: #555;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 16px;
-    text-align: left;
-}
-
-.start-btn {
-    background: #e91e8c;
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 16px 32px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 8px;
-    transition: all 0.2s;
-}
-
-.start-btn:hover {
-    background: #c2185b;
-}
-
-/* Trust Strip */
-.trust-strip {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-    max-width: 480px;
-    width: 100%;
-}
-
-.trust-strip span {
-    background: white;
-    color: #880e4f;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-/* Main app wrapper */
-.main-app {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    min-height: 100vh;
-}
-
-/* Hint message */
-.message.hint {
-    background: #fff9c4;
-    color: #666;
-    font-size: 12px;
-    align-self: center;
-    text-align: center;
-    border-radius: 12px;
-    padding: 8px 12px;
-    max-width: 90%;
 }

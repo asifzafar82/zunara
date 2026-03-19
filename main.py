@@ -1,10 +1,19 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from groq import Groq
+from datetime import datetime
 
 app = Flask(__name__)
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+# Simple in-memory counter
+stats = {
+    "total_conversations": 0,
+    "total_messages": 0,
+    "helpful_feedback": 0,
+    "not_helpful_feedback": 0
+}
 
 @app.route("/")
 def home():
@@ -17,6 +26,20 @@ def chat():
     stage = data.get("stage", "preparing")
     mood = data.get("mood", "")
     history = data.get("history", [])
+
+    # Track real human messages
+    stats["total_messages"] += 1
+    if len(history) <= 1:
+        stats["total_conversations"] += 1
+        print(f"\n{'='*50}")
+        print(f"🌸 NEW REAL USER CONVERSATION STARTED")
+        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Stage: {stage}")
+        print(f"Mood: {mood}")
+        print(f"Total conversations so far: {stats['total_conversations']}")
+        print(f"{'='*50}\n")
+    
+    print(f"💬 REAL USER MESSAGE #{stats['total_messages']}: {user_message[:50]}...")
 
     stage_context = {
         "preparing": "just starting their IVF journey and feeling uncertain",
@@ -71,6 +94,22 @@ You are the friend at 2am who actually listens. That is your only job."""
 
     reply = response.choices[0].message.content
     return jsonify({"reply": reply})
+
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    data = request.json
+    feedback_type = data.get("feedback", "")
+    if feedback_type == "helpful":
+        stats["helpful_feedback"] += 1
+    else:
+        stats["not_helpful_feedback"] += 1
+    print(f"\n⭐ FEEDBACK RECEIVED: {feedback_type}")
+    print(f"Total helpful: {stats['helpful_feedback']} | Not helpful: {stats['not_helpful_feedback']}\n")
+    return jsonify({"status": "ok"})
+
+@app.route("/stats")
+def show_stats():
+    return jsonify(stats)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)

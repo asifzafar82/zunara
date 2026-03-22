@@ -21,22 +21,14 @@
             <div class="welcome-logo">🌸</div>
             <h1>Bloom</h1>
             <p class="welcome-tagline">You're not alone in this journey</p>
-
             <div class="trust-badges">
                 <span>🔒 Private</span>
                 <span>🆓 Free</span>
                 <span>💬 AI Support</span>
                 <span>🌸 Built for IVF</span>
             </div>
-
-            <p class="welcome-desc">
-                Bloom is your personal emotional support companion — available 24/7, especially at those hard 2am moments during IVF.
-            </p>
-
-            <p class="welcome-desc">
-                Just tell me how you're feeling. No judgment. No advice unless you want it. Just someone who truly listens. 💕
-            </p>
-
+            <p class="welcome-desc">Bloom is your personal emotional support companion — available 24/7, especially at those hard 2am moments during IVF.</p>
+            <p class="welcome-desc">Just tell me how you're feeling. No judgment. No advice unless you want it. Just someone who truly listens. 💕</p>
             <button class="start-btn" onclick="startChat()">I'm ready to talk 🌸</button>
         </div>
     </div>
@@ -55,57 +47,131 @@
             <span>🌸 Built for IVF</span>
         </div>
 
-        <div class="stage-selector">
-            <label>📍 Where are you in your IVF journey?</label>
-            <select id="stage">
-                <option value="preparing">Preparing / Just Starting</option>
-                <option value="stimulation">Stimulation Phase</option>
-                <option value="retrieval">Egg Retrieval</option>
-                <option value="transfer">Embryo Transfer</option>
-                <option value="tww">Two-Week Wait 😰</option>
-                <option value="results">Just Got Results</option>
-                <option value="failed">Dealing with a Failed Cycle</option>
-            </select>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('chatTab', this)">💬 Talk</button>
+            <button class="tab-btn" onclick="showTab('exercisesTab', this)">🧘 Calm</button>
+            <button class="tab-btn" onclick="showTab('affirmationsTab', this)">✨ Affirm</button>
+            <button class="tab-btn" onclick="showTab('journalTab', this)">📓 Journal</button>
         </div>
 
-        <div class="mood-selector">
-            <label>💭 How are you feeling right now?</label>
-            <div class="mood-buttons">
-                <button class="mood-btn" onclick="selectMood(this)">😰 Anxious</button>
-                <button class="mood-btn" onclick="selectMood(this)">😢 Sad</button>
-                <button class="mood-btn" onclick="selectMood(this)">😤 Frustrated</button>
-                <button class="mood-btn" onclick="selectMood(this)">😶 Numb</button>
-                <button class="mood-btn" onclick="selectMood(this)">🙂 Hopeful</button>
-                <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
+        <!-- Chat Tab -->
+        <div id="chatTab" class="tab-content">
+            <div class="stage-selector">
+                <label>📍 Where are you in your IVF journey?</label>
+                <select id="stage">
+                    <option value="preparing">Preparing / Just Starting</option>
+                    <option value="stimulation">Stimulation Phase</option>
+                    <option value="retrieval">Egg Retrieval</option>
+                    <option value="transfer">Embryo Transfer</option>
+                    <option value="tww">Two-Week Wait 😰</option>
+                    <option value="results">Just Got Results</option>
+                    <option value="failed">Dealing with a Failed Cycle</option>
+                </select>
             </div>
-        </div>
 
-        <div class="chat-container">
-            <div class="chat-messages" id="messages">
-                <div class="message bot">
-                    Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.
+            <div class="mood-selector">
+                <label>💭 How are you feeling right now?</label>
+                <div class="mood-buttons">
+                    <button class="mood-btn" onclick="selectMood(this)">😰 Anxious</button>
+                    <button class="mood-btn" onclick="selectMood(this)">😢 Sad</button>
+                    <button class="mood-btn" onclick="selectMood(this)">😤 Frustrated</button>
+                    <button class="mood-btn" onclick="selectMood(this)">😶 Numb</button>
+                    <button class="mood-btn" onclick="selectMood(this)">🙂 Hopeful</button>
+                    <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
                 </div>
-                <div class="message hint">
-                    💡 Try: "I'm so anxious about my results" or "I can't sleep during the two week wait"
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="messages">
+                    <div class="message bot">Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.</div>
+                    <div class="message hint">💡 Try: "I'm so anxious about my results" or "I can't sleep during the two week wait"</div>
+                </div>
+                <div class="typing" id="typing" style="display:none">Typing...</div>
+                <div class="chat-input">
+                    <input type="text" id="userInput" placeholder="Tell me how you're feeling..." onkeypress="if(event.key==='Enter') sendMessage()"/>
+                    <button onclick="sendMessage()">➤</button>
                 </div>
             </div>
-            <div class="typing" id="typing" style="display:none">Typing...</div>
-            <div class="chat-input">
-                <input type="text" id="userInput" placeholder="Tell me how you're feeling..."
-                    onkeypress="if(event.key==='Enter') sendMessage()"/>
-                <button onclick="sendMessage()">➤</button>
+
+            <div class="feedback-container" id="feedbackContainer" style="display:none">
+                <p>Was Bloom helpful today? 💕</p>
+                <div class="feedback-buttons">
+                    <button class="feedback-btn" onclick="sendFeedback('helpful')">👍 Yes, it helped</button>
+                    <button class="feedback-btn" onclick="sendFeedback('not_helpful')">👎 Not really</button>
+                </div>
+                <div id="feedbackThanks" style="display:none">
+                    <p>Thank you! Your feedback helps us improve 🌸</p>
+                </div>
             </div>
         </div>
 
-        <div class="feedback-container" id="feedbackContainer" style="display:none">
-            <p>Was Bloom helpful today? 💕</p>
-            <div class="feedback-buttons">
-                <button class="feedback-btn" onclick="sendFeedback('helpful')">👍 Yes, it helped</button>
-                <button class="feedback-btn" onclick="sendFeedback('not_helpful')">👎 Not really</button>
+        <!-- Calm Tab -->
+        <div id="exercisesTab" class="tab-content" style="display:none">
+            <div class="section-title">🧘 Calming Exercises</div>
+            <p class="section-desc">Choose an exercise to help you feel calmer right now</p>
+
+            <div class="exercise-card" onclick="startExercise('breathing')">
+                <div class="exercise-icon">😮‍💨</div>
+                <div class="exercise-info">
+                    <h3>Box Breathing</h3>
+                    <p>2 minutes • Reduces anxiety instantly</p>
+                </div>
             </div>
-            <div id="feedbackThanks" style="display:none">
-                <p>Thank you! Your feedback helps us improve 🌸</p>
+
+            <div class="exercise-card" onclick="startExercise('grounding')">
+                <div class="exercise-icon">🌿</div>
+                <div class="exercise-info">
+                    <h3>5-4-3-2-1 Grounding</h3>
+                    <p>3 minutes • Brings you back to now</p>
+                </div>
             </div>
+
+            <div class="exercise-card" onclick="startExercise('bodyscan')">
+                <div class="exercise-icon">💆</div>
+                <div class="exercise-info">
+                    <h3>Body Scan Relaxation</h3>
+                    <p>5 minutes • Releases physical tension</p>
+                </div>
+            </div>
+
+            <div class="exercise-card" onclick="startExercise('visualization')">
+                <div class="exercise-icon">🌈</div>
+                <div class="exercise-info">
+                    <h3>Safe Place Visualization</h3>
+                    <p>4 minutes • Creates inner peace</p>
+                </div>
+            </div>
+
+            <!-- Exercise Player -->
+            <div id="exercisePlayer" style="display:none">
+                <div class="exercise-player">
+                    <div id="exerciseText" class="exercise-step"></div>
+                    <div id="exerciseTimer" class="exercise-timer"></div>
+                    <button class="exercise-next-btn" onclick="nextStep()">Next ➤</button>
+                    <button class="exercise-close-btn" onclick="closeExercise()">✕ Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Affirmations Tab -->
+        <div id="affirmationsTab" class="tab-content" style="display:none">
+            <div class="section-title">✨ Daily Affirmations</div>
+            <p class="section-desc">Words of strength for your IVF journey</p>
+            <div id="affirmationCard" class="affirmation-card">
+                <div class="affirmation-text" id="affirmationText"></div>
+                <button class="affirmation-btn" onclick="newAffirmation()">New Affirmation 🌸</button>
+            </div>
+        </div>
+
+        <!-- Journal Tab -->
+        <div id="journalTab" class="tab-content" style="display:none">
+            <div class="section-title">📓 Today's Journal</div>
+            <p class="section-desc">Write freely — this is your private space</p>
+            <div class="journal-prompt" id="journalPrompt"></div>
+            <textarea class="journal-input" id="journalText" placeholder="Write how you're feeling today..."></textarea>
+            <button class="journal-save-btn" onclick="saveJournal()">Save Entry 💕</button>
+            <div id="journalSaved" style="display:none" class="journal-saved">✅ Saved! Keep writing whenever you need to.</div>
         </div>
     </div>
 

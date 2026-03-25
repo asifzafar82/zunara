@@ -1,15 +1,83 @@
 let selectedMood = "";
 let conversationHistory = [];
 let messageCount = 0;
+let isClinicUser = false;
+let clinicName = "";
+let messageCountToday = 0;
 let currentExercise = [];
 let currentStep = 0;
 
-// ===== WELCOME =====
-function startChat() {
+const FREE_DAILY_LIMIT = 5;
+
+// ===== WELCOME SCREENS =====
+function showWelcome() {
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('codeScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'none';
+}
+
+function showCodeEntry() {
     document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('codeScreen').style.display = 'flex';
+}
+
+async function validateCode() {
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+        const response = await fetch('/validate-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        const data = await response.json();
+
+        if (data.valid) {
+            isClinicUser = true;
+            clinicName = data.clinic;
+            document.getElementById('codeScreen').style.display = 'none';
+            startApp();
+        } else {
+            document.getElementById('codeError').style.display = 'block';
+        }
+    } catch (err) {
+        document.getElementById('codeError').style.display = 'block';
+    }
+}
+
+function startFreeChat() {
+    isClinicUser = false;
+    messageCountToday = parseInt(localStorage.getItem('bloom_msg_count_' + today()) || '0');
+    document.getElementById('welcomeScreen').style.display = 'none';
+    startApp();
+}
+
+function startApp() {
     document.getElementById('mainApp').style.display = 'flex';
+
+    if (isClinicUser) {
+        document.getElementById('accessLabel').textContent = `Welcome from ${clinicName} 🏥`;
+        document.getElementById('accessBadge').textContent = '🏥 Clinic Access';
+    } else {
+        document.getElementById('accessBadge').textContent = `🆓 ${FREE_DAILY_LIMIT - messageCountToday} messages left today`;
+        if (messageCountToday >= FREE_DAILY_LIMIT) {
+            showUpgradePrompt();
+        }
+    }
+
     showAffirmation();
     showJournalPrompt();
+}
+
+function today() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function showUpgradePrompt() {
+    document.getElementById('upgradePrompt').style.display = 'block';
+    document.getElementById('userInput').disabled = true;
+    document.querySelector('.chat-input button').disabled = true;
 }
 
 // ===== TABS =====
@@ -31,23 +99,54 @@ async function sendMessage() {
     const input = document.getElementById('userInput');
     const text = input.value.trim();
     if (!text) return;
+
+    if (!isClinicUser && messageCountToday >= FREE_DAILY_LIMIT) {
+        showUpgradePrompt();
+        return;
+    }
+
     const stage = document.getElementById('stage').value;
     addMessage(text, 'user');
     input.value = '';
     conversationHistory.push({ role: "user", content: text });
     document.getElementById('typing').style.display = 'block';
+
     try {
         const response = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, stage: stage, mood: selectedMood, history: conversationHistory })
+            body: JSON.stringify({
+                message: text,
+                stage: stage,
+                mood: selectedMood,
+                history: conversationHistory,
+                is_clinic_user: isClinicUser,
+                message_count_today: messageCountToday
+            })
         });
+
         const data = await response.json();
         document.getElementById('typing').style.display = 'none';
+
+        if (data.limit_reached) {
+            showUpgradePrompt();
+            return;
+        }
+
         if (data.reply) {
             addMessage(data.reply, 'bot');
             conversationHistory.push({ role: "assistant", content: data.reply });
             messageCount++;
+            messageCountToday++;
+
+            // Save count for free users
+            if (!isClinicUser) {
+                localStorage.setItem('bloom_msg_count_' + today(), messageCountToday);
+                const remaining = FREE_DAILY_LIMIT - messageCountToday;
+                document.getElementById('accessBadge').textContent = `🆓 ${remaining} messages left today`;
+                if (remaining <= 0) showUpgradePrompt();
+            }
+
             if (messageCount >= 3) {
                 document.getElementById('feedbackContainer').style.display = 'block';
             }
@@ -143,10 +242,7 @@ function startExercise(type) {
 
 function nextStep() {
     currentStep++;
-    if (currentStep >= currentExercise.length) {
-        closeExercise();
-        return;
-    }
+    if (currentStep >= currentExercise.length) { closeExercise(); return; }
     document.getElementById('exerciseText').textContent = currentExercise[currentStep];
     document.getElementById('exerciseTimer').textContent = `Step ${currentStep + 1} of ${currentExercise.length}`;
     if (currentStep === currentExercise.length - 1) {
@@ -177,7 +273,6 @@ const affirmations = [
 ];
 
 function showAffirmation() { newAffirmation(); }
-
 function newAffirmation() {
     const random = affirmations[Math.floor(Math.random() * affirmations.length)];
     document.getElementById('affirmationText').textContent = random;
@@ -204,7 +299,5 @@ function saveJournal() {
     const text = document.getElementById('journalText').value;
     if (!text.trim()) return;
     document.getElementById('journalSaved').style.display = 'block';
-    setTimeout(() => {
-        document.getElementById('journalSaved').style.display = 'none';
-    }, 3000);
+    setTimeout(() => { document.getElementById('journalSaved').style.display = 'none'; }, 3000);
 }

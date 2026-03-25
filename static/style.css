@@ -531,3 +531,82 @@ body {
     margin-top: 12px;
     font-weight: 600;
 }
+
+/* ===== CODE SCREEN ===== */
+#welcomeScreen, #codeScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.code-input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #f48fb1;
+    border-radius: 12px;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 3px;
+    font-weight: 700;
+    color: #880e4f;
+    outline: none;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.code-input:focus {
+    border-color: #e91e8c;
+}
+
+.code-error {
+    color: #e53935;
+    font-size: 13px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.start-btn-free {
+    background: transparent;
+    color: #ad1457;
+    border: 2px solid #f48fb1;
+    border-radius: 25px;
+    padding: 14px 32px;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* ===== UPGRADE PROMPT ===== */
+.upgrade-prompt {
+    background: #fce4ec;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 16px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.upgrade-prompt p {
+    color: #880e4f;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.upgrade-prompt p:last-child {
+    font-weight: normal;
+    color: #ad1457;
+}
+
+/* ===== MESSAGE COUNTER ===== */
+.message-counter {
+    text-align: center;
+    color: #ad1457;
+    font-size: 12px;
+    padding: 4px;
+}

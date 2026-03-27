@@ -3,39 +3,75 @@ import os
 from groq import Groq
 from datetime import datetime, date
 import json
+import requests
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "bloom-secret-2026")
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# Clinic codes — add new ones here anytime
-CLINIC_CODES = {
-    "BLOOM-AUS-001": {"clinic": "Sample Australian Clinic", "country": "Australia"},
-    "BLOOM-UK-001": {"clinic": "Sample UK Clinic", "country": "UK"},
-    "BLOOM-USA-001": {"clinic": "Sample US Clinic", "country": "USA"},
-    "BLOOM-IN-001": {"clinic": "Sample Indian Clinic", "country": "India"},
-}
+# Supabase config
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://qtdncxiqkzsqwqbolvjw.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0ZG5jeGlxa3pzcXdxYm9sdmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzU5OTMsImV4cCI6MjA5MDIxMTk5M30.ZV5DGtZMWIDwKPGibY0y_zUXY6rKuZFKLzYolKurtcA")
 
-# In-memory stats
-stats = {
-    "total_conversations": 0,
-    "total_messages": 0,
-    "helpful_feedback": 0,
-    "not_helpful_feedback": 0,
-    "clinic_users": 0,
-    "free_users": 0
-}
-
-# Clinic specific stats — tracks anonymous data per clinic code
-clinic_stats = {
-    "BLOOM-AUS-001": {"patients": 0, "messages": 0, "moods": {}, "stages": {}, "helpful": 0},
-    "BLOOM-UK-001": {"patients": 0, "messages": 0, "moods": {}, "stages": {}, "helpful": 0},
-    "BLOOM-USA-001": {"patients": 0, "messages": 0, "moods": {}, "stages": {}, "helpful": 0},
-    "BLOOM-IN-001": {"patients": 0, "messages": 0, "moods": {}, "stages": {}, "helpful": 0},
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
 }
 
 FREE_DAILY_LIMIT = 5
+
+# --- Supabase helpers ---
+
+def db_get_stats():
+    r = requests.get(f"{SUPABASE_URL}/rest/v1/stats?id=eq.global", headers=HEADERS)
+    data = r.json()
+    return data[0] if data else {}
+
+def db_increment_stats(field, amount=1):
+    current = db_get_stats()
+    new_val = current.get(field, 0) + amount
+    requests.patch(
+        f"{SUPABASE_URL}/rest/v1/stats?id=eq.global",
+        headers=HEADERS,
+        json={field: new_val}
+    )
+
+def db_get_clinic_codes():
+    r = requests.get(f"{SUPABASE_URL}/rest/v1/clinic_codes", headers=HEADERS)
+    codes = {}
+    for row in r.json():
+        codes[row["code"]] = {"clinic": row["clinic_name"], "country": row["country"]}
+    return codes
+
+def db_get_clinic_stats(code):
+    r = requests.get(f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}", headers=HEADERS)
+    data = r.json()
+    return data[0] if data else {"patients": 0, "messages": 0, "helpful": 0, "moods": {}, "stages": {}}
+
+def db_update_clinic_stats(code, patients_inc=0, messages_inc=1, mood=None, stage=None, helpful_inc=0):
+    current = db_get_clinic_stats(code)
+    new_data = {
+        "patients": current.get("patients", 0) + patients_inc,
+        "messages": current.get("messages", 0) + messages_inc,
+        "helpful": current.get("helpful", 0) + helpful_inc,
+        "moods": current.get("moods", {}),
+        "stages": current.get("stages", {})
+    }
+    if mood:
+        new_data["moods"][mood] = new_data["moods"].get(mood, 0) + 1
+    if stage:
+        new_data["stages"][stage] = new_data["stages"].get(stage, 0) + 1
+
+    requests.patch(
+        f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}",
+        headers=HEADERS,
+        json=new_data
+    )
+
+# --- Clinic Dashboard HTML ---
 
 CLINIC_DASHBOARD = """
 <!DOCTYPE html>
@@ -71,12 +107,10 @@ CLINIC_DASHBOARD = """
         <h1>🌸 Bloom Dashboard</h1>
         <p>Anonymous patient insights</p>
     </div>
-
     <div class="clinic-name">
         <h2>{{ clinic_name }}</h2>
         <p>{{ country }} • Access Code: {{ code }}</p>
     </div>
-
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-number">{{ data.patients }}</div>
@@ -95,8 +129,7 @@ CLINIC_DASHBOARD = """
             <div class="stat-label">Avg Messages/Patient</div>
         </div>
     </div>
-
-    {% if data.moods %}
+    {% if top_moods %}
     <div class="section">
         <h3>💭 Most Common Moods</h3>
         {% for mood, count in top_moods %}
@@ -109,8 +142,7 @@ CLINIC_DASHBOARD = """
     {% else %}
     <div class="section"><div class="no-data">No mood data yet 🌸</div></div>
     {% endif %}
-
-    {% if data.stages %}
+    {% if top_stages %}
     <div class="section">
         <h3>📍 IVF Stages Most Supported</h3>
         {% for stage, count in top_stages %}
@@ -123,11 +155,12 @@ CLINIC_DASHBOARD = """
     {% else %}
     <div class="section"><div class="no-data">No stage data yet 🌸</div></div>
     {% endif %}
-
-    <p class="privacy-note">🔒 All data is completely anonymous. No patient names, conversations or personal information is stored or shown.</p>
+    <p class="privacy-note">🔒 All data is completely anonymous. No patient names, conversations or personal information is stored.</p>
 </body>
 </html>
 """
+
+# --- Routes ---
 
 @app.route("/")
 def home():
@@ -137,8 +170,9 @@ def home():
 def validate_code():
     data = request.json
     code = data.get("code", "").strip().upper()
-    if code in CLINIC_CODES:
-        clinic_info = CLINIC_CODES[code]
+    clinic_codes = db_get_clinic_codes()
+    if code in clinic_codes:
+        clinic_info = clinic_codes[code]
         print(f"\n🏥 CLINIC USER: {clinic_info['clinic']} ({clinic_info['country']})")
         return jsonify({"valid": True, "clinic": clinic_info["clinic"], "country": clinic_info["country"], "code": code})
     else:
@@ -158,33 +192,31 @@ def chat():
     if not is_clinic_user and message_count_today >= FREE_DAILY_LIMIT:
         return jsonify({"reply": None, "limit_reached": True})
 
-    stats["total_messages"] += 1
+    # Update global stats
+    db_increment_stats("total_messages")
 
-    # Track clinic stats
-    if is_clinic_user and clinic_code in clinic_stats:
-        clinic_stats[clinic_code]["messages"] += 1
-        if len(history) <= 1:
-            clinic_stats[clinic_code]["patients"] += 1
-        if mood:
-            clinic_stats[clinic_code]["moods"][mood] = clinic_stats[clinic_code]["moods"].get(mood, 0) + 1
-        if stage:
-            clinic_stats[clinic_code]["stages"][stage] = clinic_stats[clinic_code]["stages"].get(stage, 0) + 1
+    is_new_conversation = len(history) <= 1
 
-    if len(history) <= 1:
-        stats["total_conversations"] += 1
+    if is_new_conversation:
+        db_increment_stats("total_conversations")
         if is_clinic_user:
-            stats["clinic_users"] += 1
+            db_increment_stats("clinic_users")
         else:
-            stats["free_users"] += 1
+            db_increment_stats("free_users")
         print(f"\n{'='*50}")
-        print(f"🌸 NEW REAL USER CONVERSATION STARTED")
-        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"Stage: {stage} | Mood: {mood}")
-        print(f"Type: {'Clinic User ✅ ' + clinic_code if is_clinic_user else 'Free User'}")
-        print(f"Total conversations: {stats['total_conversations']}")
+        print(f"🌸 NEW CONVERSATION | Stage: {stage} | Mood: {mood}")
+        print(f"Type: {'Clinic: ' + clinic_code if is_clinic_user else 'Free User'}")
         print(f"{'='*50}\n")
 
-    print(f"💬 REAL USER MESSAGE #{stats['total_messages']}: {user_message[:50]}...")
+    # Update clinic stats
+    if is_clinic_user and clinic_code:
+        db_update_clinic_stats(
+            clinic_code,
+            patients_inc=1 if is_new_conversation else 0,
+            messages_inc=1,
+            mood=mood if mood else None,
+            stage=stage if stage else None
+        )
 
     stage_context = {
         "preparing": "just starting their IVF journey and feeling uncertain",
@@ -249,11 +281,11 @@ def feedback():
     feedback_type = data.get("feedback", "")
     clinic_code = data.get("clinic_code", "")
     if feedback_type == "helpful":
-        stats["helpful_feedback"] += 1
-        if clinic_code in clinic_stats:
-            clinic_stats[clinic_code]["helpful"] += 1
+        db_increment_stats("helpful_feedback")
+        if clinic_code:
+            db_update_clinic_stats(clinic_code, messages_inc=0, helpful_inc=1)
     else:
-        stats["not_helpful_feedback"] += 1
+        db_increment_stats("not_helpful_feedback")
     print(f"\n⭐ FEEDBACK: {feedback_type}\n")
     return jsonify({"status": "ok"})
 
@@ -264,27 +296,24 @@ def clinic_dashboard(code):
     if admin_key != os.environ.get("ADMIN_KEY", "bloom-admin-2026"):
         return "Unauthorized — please contact Bloom support", 401
 
-    if code not in CLINIC_CODES:
+    clinic_codes = db_get_clinic_codes()
+    if code not in clinic_codes:
         return "Invalid clinic code", 404
 
-    clinic_info = CLINIC_CODES[code]
-    data = clinic_stats.get(code, {"patients": 0, "messages": 0, "moods": {}, "stages": {}, "helpful": 0})
+    clinic_info = clinic_codes[code]
+    data = db_get_clinic_stats(code)
 
-    avg_messages = round(data["messages"] / data["patients"], 1) if data["patients"] > 0 else 0
+    avg_messages = round(data["messages"] / data["patients"], 1) if data.get("patients", 0) > 0 else 0
 
-    top_moods = sorted(data["moods"].items(), key=lambda x: x[1], reverse=True)[:5]
+    top_moods = sorted(data.get("moods", {}).items(), key=lambda x: x[1], reverse=True)[:5]
     max_mood = max([c for _, c in top_moods], default=1)
 
     stage_labels = {
-        "preparing": "Preparing",
-        "stimulation": "Stimulation",
-        "retrieval": "Egg Retrieval",
-        "transfer": "Transfer",
-        "tww": "Two-Week Wait",
-        "results": "Results",
-        "failed": "Failed Cycle"
+        "preparing": "Preparing", "stimulation": "Stimulation",
+        "retrieval": "Egg Retrieval", "transfer": "Transfer",
+        "tww": "Two-Week Wait", "results": "Results", "failed": "Failed Cycle"
     }
-    top_stages = [(stage_labels.get(s, s), c) for s, c in sorted(data["stages"].items(), key=lambda x: x[1], reverse=True)[:5]]
+    top_stages = [(stage_labels.get(s, s), c) for s, c in sorted(data.get("stages", {}).items(), key=lambda x: x[1], reverse=True)[:5]]
     max_stage = max([c for _, c in top_stages], default=1)
 
     return render_template_string(CLINIC_DASHBOARD,
@@ -301,14 +330,17 @@ def clinic_dashboard(code):
 
 @app.route("/stats")
 def show_stats():
-    return jsonify(stats)
+    return jsonify(db_get_stats())
 
 @app.route("/admin")
 def admin():
     password = request.args.get("key", "")
     if password != os.environ.get("ADMIN_KEY", "bloom-admin-2026"):
         return "Unauthorized", 401
-    return jsonify({"stats": stats, "clinic_stats": clinic_stats, "active_codes": CLINIC_CODES})
+    return jsonify({
+        "stats": db_get_stats(),
+        "clinic_codes": db_get_clinic_codes()
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)

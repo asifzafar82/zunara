@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify, render_template, render_template_string
 import os
 from groq import Groq
-from datetime import datetime, date
+from datetime import datetime
 import json
-import requests
+import requests as http_requests
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "bloom-secret-2026")
@@ -14,62 +14,90 @@ client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://qtdncxiqkzsqwqbolvjw.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0ZG5jeGlxa3pzcXdxYm9sdmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzU5OTMsImV4cCI6MjA5MDIxMTk5M30.ZV5DGtZMWIDwKPGibY0y_zUXY6rKuZFKLzYolKurtcA")
 
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-}
+def get_headers():
+    return {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
 
 FREE_DAILY_LIMIT = 5
 
 # --- Supabase helpers ---
 
 def db_get_stats():
-    r = requests.get(f"{SUPABASE_URL}/rest/v1/stats?id=eq.global", headers=HEADERS)
-    data = r.json()
-    return data[0] if data else {}
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/stats?id=eq.global&select=*"
+        r = http_requests.get(url, headers=get_headers(), timeout=10)
+        data = r.json()
+        if isinstance(data, list) and len(data) > 0:
+            return data[0]
+        return {}
+    except Exception as e:
+        print(f"Error getting stats: {e}")
+        return {}
 
 def db_increment_stats(field, amount=1):
-    current = db_get_stats()
-    new_val = current.get(field, 0) + amount
-    requests.patch(
-        f"{SUPABASE_URL}/rest/v1/stats?id=eq.global",
-        headers=HEADERS,
-        json={field: new_val}
-    )
+    try:
+        current = db_get_stats()
+        new_val = current.get(field, 0) + amount
+        url = f"{SUPABASE_URL}/rest/v1/stats?id=eq.global"
+        http_requests.patch(url, headers=get_headers(), json={field: new_val}, timeout=10)
+    except Exception as e:
+        print(f"Error incrementing stats: {e}")
 
 def db_get_clinic_codes():
-    r = requests.get(f"{SUPABASE_URL}/rest/v1/clinic_codes", headers=HEADERS)
-    codes = {}
-    for row in r.json():
-        codes[row["code"]] = {"clinic": row["clinic_name"], "country": row["country"]}
-    return codes
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/clinic_codes?select=*"
+        r = http_requests.get(url, headers=get_headers(), timeout=10)
+        data = r.json()
+        codes = {}
+        if isinstance(data, list):
+            for row in data:
+                codes[row["code"]] = {
+                    "clinic": row["clinic_name"],
+                    "country": row["country"]
+                }
+        return codes
+    except Exception as e:
+        print(f"Error getting clinic codes: {e}")
+        return {}
 
 def db_get_clinic_stats(code):
-    r = requests.get(f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}", headers=HEADERS)
-    data = r.json()
-    return data[0] if data else {"patients": 0, "messages": 0, "helpful": 0, "moods": {}, "stages": {}}
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}&select=*"
+        r = http_requests.get(url, headers=get_headers(), timeout=10)
+        data = r.json()
+        if isinstance(data, list) and len(data) > 0:
+            return data[0]
+        return {"patients": 0, "messages": 0, "helpful": 0, "moods": {}, "stages": {}}
+    except Exception as e:
+        print(f"Error getting clinic stats: {e}")
+        return {"patients": 0, "messages": 0, "helpful": 0, "moods": {}, "stages": {}}
 
 def db_update_clinic_stats(code, patients_inc=0, messages_inc=1, mood=None, stage=None, helpful_inc=0):
-    current = db_get_clinic_stats(code)
-    new_data = {
-        "patients": current.get("patients", 0) + patients_inc,
-        "messages": current.get("messages", 0) + messages_inc,
-        "helpful": current.get("helpful", 0) + helpful_inc,
-        "moods": current.get("moods", {}),
-        "stages": current.get("stages", {})
-    }
-    if mood:
-        new_data["moods"][mood] = new_data["moods"].get(mood, 0) + 1
-    if stage:
-        new_data["stages"][stage] = new_data["stages"].get(stage, 0) + 1
+    try:
+        current = db_get_clinic_stats(code)
+        moods = current.get("moods", {}) or {}
+        stages = current.get("stages", {}) or {}
 
-    requests.patch(
-        f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}",
-        headers=HEADERS,
-        json=new_data
-    )
+        new_data = {
+            "patients": current.get("patients", 0) + patients_inc,
+            "messages": current.get("messages", 0) + messages_inc,
+            "helpful": current.get("helpful", 0) + helpful_inc,
+            "moods": moods,
+            "stages": stages
+        }
+        if mood:
+            new_data["moods"][mood] = new_data["moods"].get(mood, 0) + 1
+        if stage:
+            new_data["stages"][stage] = new_data["stages"].get(stage, 0) + 1
+
+        url = f"{SUPABASE_URL}/rest/v1/clinic_stats?code=eq.{code}"
+        http_requests.patch(url, headers=get_headers(), json=new_data, timeout=10)
+    except Exception as e:
+        print(f"Error updating clinic stats: {e}")
 
 # --- Clinic Dashboard HTML ---
 
@@ -155,7 +183,7 @@ CLINIC_DASHBOARD = """
     {% else %}
     <div class="section"><div class="no-data">No stage data yet 🌸</div></div>
     {% endif %}
-    <p class="privacy-note">🔒 All data is completely anonymous. No patient names, conversations or personal information is stored.</p>
+    <p class="privacy-note">🔒 All data is completely anonymous. No patient names or conversations stored.</p>
 </body>
 </html>
 """
@@ -175,8 +203,7 @@ def validate_code():
         clinic_info = clinic_codes[code]
         print(f"\n🏥 CLINIC USER: {clinic_info['clinic']} ({clinic_info['country']})")
         return jsonify({"valid": True, "clinic": clinic_info["clinic"], "country": clinic_info["country"], "code": code})
-    else:
-        return jsonify({"valid": False})
+    return jsonify({"valid": False})
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -192,9 +219,7 @@ def chat():
     if not is_clinic_user and message_count_today >= FREE_DAILY_LIMIT:
         return jsonify({"reply": None, "limit_reached": True})
 
-    # Update global stats
     db_increment_stats("total_messages")
-
     is_new_conversation = len(history) <= 1
 
     if is_new_conversation:
@@ -203,12 +228,8 @@ def chat():
             db_increment_stats("clinic_users")
         else:
             db_increment_stats("free_users")
-        print(f"\n{'='*50}")
-        print(f"🌸 NEW CONVERSATION | Stage: {stage} | Mood: {mood}")
-        print(f"Type: {'Clinic: ' + clinic_code if is_clinic_user else 'Free User'}")
-        print(f"{'='*50}\n")
+        print(f"\n🌸 NEW CONVERSATION | Stage: {stage} | Mood: {mood} | Type: {'Clinic: ' + clinic_code if is_clinic_user else 'Free'}")
 
-    # Update clinic stats
     if is_clinic_user and clinic_code:
         db_update_clinic_stats(
             clinic_code,
@@ -304,8 +325,7 @@ def clinic_dashboard(code):
     data = db_get_clinic_stats(code)
 
     avg_messages = round(data["messages"] / data["patients"], 1) if data.get("patients", 0) > 0 else 0
-
-    top_moods = sorted(data.get("moods", {}).items(), key=lambda x: x[1], reverse=True)[:5]
+    top_moods = sorted((data.get("moods") or {}).items(), key=lambda x: x[1], reverse=True)[:5]
     max_mood = max([c for _, c in top_moods], default=1)
 
     stage_labels = {
@@ -313,7 +333,7 @@ def clinic_dashboard(code):
         "retrieval": "Egg Retrieval", "transfer": "Transfer",
         "tww": "Two-Week Wait", "results": "Results", "failed": "Failed Cycle"
     }
-    top_stages = [(stage_labels.get(s, s), c) for s, c in sorted(data.get("stages", {}).items(), key=lambda x: x[1], reverse=True)[:5]]
+    top_stages = [(stage_labels.get(s, s), c) for s, c in sorted((data.get("stages") or {}).items(), key=lambda x: x[1], reverse=True)[:5]]
     max_stage = max([c for _, c in top_stages], default=1)
 
     return render_template_string(CLINIC_DASHBOARD,

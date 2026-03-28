@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y55SC76ZLN"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -12,11 +11,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bloom - IVF Support Companion</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            background: rgba(233,30,140,0.08);
+            z-index: 9999;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 20px;
+        }
+        .ob-card {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 32px 28px 24px;
+            position: relative;
+            box-shadow: 0 -4px 60px rgba(0,0,0,0.15);
+            animation: slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            margin-bottom: 10px;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(80px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .ob-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
+        .ob-dot { width: 8px; height: 8px; border-radius: 50%; background: #f0d6e0; transition: all 0.3s ease; }
+        .ob-dot.active { background: #e91e8c; width: 24px; border-radius: 4px; }
+        .ob-illustration { text-align: center; font-size: 64px; margin-bottom: 16px; line-height: 1; }
+        .ob-title { font-size: 22px; font-weight: 700; color: #880e4f; text-align: center; margin-bottom: 10px; line-height: 1.3; }
+        .ob-desc { font-size: 14px; color: #666; text-align: center; line-height: 1.7; margin-bottom: 20px; }
+        .ob-desc strong { color: #880e4f; }
+        .ob-steps { list-style: none; margin-bottom: 20px; }
+        .ob-steps li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #fce4ec; font-size: 13px; color: #555; line-height: 1.5; }
+        .ob-steps li:last-child { border-bottom: none; }
+        .ob-steps .step-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+        .ob-steps strong { color: #880e4f; display: block; font-size: 13px; font-weight: 600; }
+        .ob-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .ob-pill { background: #fce4ec; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #880e4f; font-weight: 500; }
+        .ob-warning { background: #fff8e1; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: #795548; line-height: 1.6; text-align: left; border-left: 3px solid #ffc107; }
+        .ob-btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #e91e8c, #880e4f); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+        .ob-btn-skip { width: 100%; padding: 10px; background: none; color: #bbb; border: none; font-size: 13px; cursor: pointer; }
+        .ob-skip-top { position: absolute; top: 16px; right: 20px; font-size: 12px; color: #ccc; cursor: pointer; background: none; border: none; }
+        .ob-slide { display: none; }
+        .ob-slide.active { display: block; }
+    </style>
 </head>
 <body>
 
-    <!-- Welcome Screen -->
-    <div id="welcomeScreen">
+    <div id="onboarding">
+        <div class="ob-card">
+            <button class="ob-skip-top" onclick="skipOnboarding()">Skip</button>
+
+            <div class="ob-slide active" id="ob-slide-1">
+                <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+                <div class="ob-illustration">💛</div>
+                <div class="ob-title">Before you begin</div>
+                <div class="ob-desc">Bloom is a <strong>wellness and emotional support app</strong> — not a medical app, not a therapy service, and not a substitute for professional healthcare.</div>
+                <ul class="ob-steps">
+                    <li><span class="step-icon">🩺</span><div><strong>Not medical advice</strong>Bloom does not diagnose, treat, or give medical guidance of any kind</div></li>
+                    <li><span class="step-icon">🧠</span><div><strong>Not a therapist</strong>Bloom is not a replacement for professional mental health support</div></li>
+                    <li><span class="step-icon">❤️</span><div><strong>What Bloom is</strong>A safe, private space to be heard and feel less alone during IVF</div></li>
+                </ul>
+                <div class="ob-warning">⚠️ If you are experiencing a medical or mental health emergency, please contact your doctor or a crisis helpline immediately.</div>
+                <button class="ob-btn-primary" onclick="obNext(2)">I understand, continue →</button>
+            </div>
+
+            <div class="ob-slide" id="ob-slide-2">
+                <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+                <div class="ob-illustration">🌸</div>
+                <div class="ob-title">Welcome to Bloom</div>
+                <div class="ob-desc">Your <strong>24/7 emotional support companion</strong> for the IVF journey. Built for the hard moments — especially the 2am ones.</div>
+                <div class="ob-pills"><span class="ob-pill">🔒 100% Private</span><span class="ob-pill">💬 AI Powered</span><span class="ob-pill">🌸 IVF Focused</span></div>
+                <button class="ob-btn-primary" onclick="obNext(3)">Get Started →</button>
+                <button class="ob-btn-skip" onclick="skipOnboarding()">I'll explore on my own</button>
+            </div>
+
+            <div class="ob-slide" id="ob-slide-3">
+                <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+                <div class="ob-illustration">💬</div>
+                <div class="ob-title">Talk to Bloom anytime</div>
+                <div class="ob-desc">Bloom understands <strong>exactly where you are in your IVF journey</strong>. Tell it your stage and how you feel.</div>
+                <ul class="ob-steps">
+                    <li><span class="step-icon">📍</span><div><strong>Select your IVF stage</strong>From stimulation to two-week wait — Bloom responds differently for each phase</div></li>
+                    <li><span class="step-icon">💭</span><div><strong>Share your mood</strong>Anxious, sad, hopeful — no feeling is wrong here</div></li>
+                    <li><span class="step-icon">💬</span><div><strong>Just start talking</strong>Type how you're feeling — Bloom responds like a caring friend</div></li>
+                </ul>
+                <button class="ob-btn-primary" onclick="obNext(4)">Next →</button>
+            </div>
+
+            <div class="ob-slide" id="ob-slide-4">
+                <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+                <div class="ob-illustration">✨</div>
+                <div class="ob-title">More than just chat</div>
+                <div class="ob-desc">Bloom has <strong>4 tools</strong> to support you through every moment of IVF</div>
+                <ul class="ob-steps">
+                    <li><span class="step-icon">💬</span><div><strong>Talk</strong>Chat with Bloom anytime — day or night</div></li>
+                    <li><span class="step-icon">🧘</span><div><strong>Calm</strong>Breathing exercises and grounding tools for anxiety</div></li>
+                    <li><span class="step-icon">✨</span><div><strong>Affirm</strong>Daily affirmations written for IVF patients</div></li>
+                    <li><span class="step-icon">📓</span><div><strong>Journal</strong>A private space to write your feelings freely</div></li>
+                </ul>
+                <button class="ob-btn-primary" onclick="obNext(5)">Next →</button>
+            </div>
+
+            <div class="ob-slide" id="ob-slide-5">
+                <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
+                <div class="ob-illustration">🏥</div>
+                <div class="ob-title">Ready to begin</div>
+                <div class="ob-desc">Start <strong>free with 5 messages a day</strong>, or ask your IVF clinic for an access code for unlimited support.</div>
+                <ul class="ob-steps">
+                    <li><span class="step-icon">🆓</span><div><strong>Free access</strong>5 messages per day — resets every morning</div></li>
+                    <li><span class="step-icon">🏥</span><div><strong>Clinic code</strong>Ask your fertility clinic for a code — unlocks unlimited access</div></li>
+                    <li><span class="step-icon">🔒</span><div><strong>Always private</strong>No names, no personal data stored. Ever.</div></li>
+                </ul>
+                <button class="ob-btn-primary" onclick="skipOnboarding()">Start using Bloom 🌸</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="welcomeScreen" style="display:none">
         <div class="welcome-box">
             <div class="welcome-logo">🌸</div>
             <h1>Bloom</h1>
@@ -28,13 +143,11 @@
             </div>
             <p class="welcome-desc">Bloom is your personal emotional support companion — available 24/7, especially at those hard 2am moments during IVF.</p>
             <p class="welcome-desc">Just tell me how you're feeling. No judgment. No advice unless you want it. Just someone who truly listens. 💕</p>
-            
             <button class="start-btn" onclick="showCodeEntry()">I have a clinic code 🏥</button>
             <button class="start-btn-free" onclick="startFreeChat()">Try free (5 messages/day)</button>
         </div>
     </div>
 
-    <!-- Clinic Code Entry -->
     <div id="codeScreen" style="display:none">
         <div class="welcome-box">
             <div class="welcome-logo">🏥</div>
@@ -47,29 +160,23 @@
         </div>
     </div>
 
-    <!-- Main Chat App -->
     <div id="mainApp" style="display:none">
         <div class="header">
             <h1>🌸 Bloom</h1>
             <p id="accessLabel">You're not alone in this journey</p>
         </div>
-
         <div class="trust-strip">
             <span>🔒 Private</span>
             <span>💬 AI Support</span>
             <span id="accessBadge">🆓 Free</span>
             <span>🌸 Built for IVF</span>
         </div>
-
-        <!-- Tab Navigation -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="showTab('chatTab', this)">💬 Talk</button>
             <button class="tab-btn" onclick="showTab('exercisesTab', this)">🧘 Calm</button>
             <button class="tab-btn" onclick="showTab('affirmationsTab', this)">✨ Affirm</button>
             <button class="tab-btn" onclick="showTab('journalTab', this)">📓 Journal</button>
         </div>
-
-        <!-- Chat Tab -->
         <div id="chatTab" class="tab-content">
             <div class="stage-selector">
                 <label>📍 Where are you in your IVF journey?</label>
@@ -83,7 +190,6 @@
                     <option value="failed">Dealing with a Failed Cycle</option>
                 </select>
             </div>
-
             <div class="mood-selector">
                 <label>💭 How are you feeling right now?</label>
                 <div class="mood-buttons">
@@ -95,7 +201,6 @@
                     <button class="mood-btn" onclick="selectMood(this)">😴 Exhausted</button>
                 </div>
             </div>
-
             <div class="chat-container">
                 <div class="chat-messages" id="messages">
                     <div class="message bot">Hi 🌸 I'm here for you. IVF is one of the hardest journeys anyone can go through. Tell me how you're feeling — I'm listening, no judgment.</div>
@@ -108,45 +213,26 @@
                     <button onclick="sendMessage()">➤</button>
                 </div>
             </div>
-
-            <!-- Upgrade prompt for free users -->
             <div id="upgradePrompt" class="upgrade-prompt" style="display:none">
                 <p>💕 You've used your 5 free messages today</p>
                 <p>Come back tomorrow for more free messages, or get a clinic code from your IVF provider for unlimited access.</p>
             </div>
-
             <div class="feedback-container" id="feedbackContainer" style="display:none">
                 <p>Was Bloom helpful today? 💕</p>
                 <div class="feedback-buttons">
                     <button class="feedback-btn" onclick="sendFeedback('helpful')">👍 Yes, it helped</button>
                     <button class="feedback-btn" onclick="sendFeedback('not_helpful')">👎 Not really</button>
                 </div>
-                <div id="feedbackThanks" style="display:none">
-                    <p>Thank you! Your feedback helps us improve 🌸</p>
-                </div>
+                <div id="feedbackThanks" style="display:none"><p>Thank you! Your feedback helps us improve 🌸</p></div>
             </div>
         </div>
-
-        <!-- Calm Tab -->
         <div id="exercisesTab" class="tab-content" style="display:none">
             <div class="section-title">🧘 Calming Exercises</div>
             <p class="section-desc">Choose an exercise to help you feel calmer right now</p>
-            <div class="exercise-card" onclick="startExercise('breathing')">
-                <div class="exercise-icon">😮‍💨</div>
-                <div class="exercise-info"><h3>Box Breathing</h3><p>2 minutes • Reduces anxiety instantly</p></div>
-            </div>
-            <div class="exercise-card" onclick="startExercise('grounding')">
-                <div class="exercise-icon">🌿</div>
-                <div class="exercise-info"><h3>5-4-3-2-1 Grounding</h3><p>3 minutes • Brings you back to now</p></div>
-            </div>
-            <div class="exercise-card" onclick="startExercise('bodyscan')">
-                <div class="exercise-icon">💆</div>
-                <div class="exercise-info"><h3>Body Scan Relaxation</h3><p>5 minutes • Releases physical tension</p></div>
-            </div>
-            <div class="exercise-card" onclick="startExercise('visualization')">
-                <div class="exercise-icon">🌈</div>
-                <div class="exercise-info"><h3>Safe Place Visualization</h3><p>4 minutes • Creates inner peace</p></div>
-            </div>
+            <div class="exercise-card" onclick="startExercise('breathing')"><div class="exercise-icon">😮‍💨</div><div class="exercise-info"><h3>Box Breathing</h3><p>2 minutes • Reduces anxiety instantly</p></div></div>
+            <div class="exercise-card" onclick="startExercise('grounding')"><div class="exercise-icon">🌿</div><div class="exercise-info"><h3>5-4-3-2-1 Grounding</h3><p>3 minutes • Brings you back to now</p></div></div>
+            <div class="exercise-card" onclick="startExercise('bodyscan')"><div class="exercise-icon">💆</div><div class="exercise-info"><h3>Body Scan Relaxation</h3><p>5 minutes • Releases physical tension</p></div></div>
+            <div class="exercise-card" onclick="startExercise('visualization')"><div class="exercise-icon">🌈</div><div class="exercise-info"><h3>Safe Place Visualization</h3><p>4 minutes • Creates inner peace</p></div></div>
             <div id="exercisePlayer" style="display:none">
                 <div class="exercise-player">
                     <div id="exerciseText" class="exercise-step"></div>
@@ -156,8 +242,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Affirmations Tab -->
         <div id="affirmationsTab" class="tab-content" style="display:none">
             <div class="section-title">✨ Daily Affirmations</div>
             <p class="section-desc">Words of strength for your IVF journey</p>
@@ -166,8 +250,6 @@
                 <button class="affirmation-btn" onclick="newAffirmation()">New Affirmation 🌸</button>
             </div>
         </div>
-
-        <!-- Journal Tab -->
         <div id="journalTab" class="tab-content" style="display:none">
             <div class="section-title">📓 Today's Journal</div>
             <p class="section-desc">Write freely — this is your private space</p>
@@ -179,5 +261,30 @@
     </div>
 
     <script src="/static/app.js"></script>
+    <script>
+        function obNext(n) {
+            document.querySelectorAll('.ob-slide').forEach(s => s.classList.remove('active'));
+            const t = document.getElementById('ob-slide-' + n);
+            if (t) t.classList.add('active');
+        }
+
+        function skipOnboarding() {
+            localStorage.setItem('bloom_onboarded', 'true');
+            const ob = document.getElementById('onboarding');
+            ob.style.opacity = '0';
+            ob.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                ob.style.display = 'none';
+                document.getElementById('welcomeScreen').style.display = 'flex';
+            }, 300);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('bloom_onboarded') === 'true') {
+                document.getElementById('onboarding').style.display = 'none';
+                document.getElementById('welcomeScreen').style.display = 'flex';
+            }
+        });
+    </script>
 </body>
-</html>
+                                                            </html>

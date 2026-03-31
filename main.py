@@ -6,7 +6,7 @@ import json
 import requests as http_requests
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "bloom-secret-2026")
+app.secret_key = os.environ.get("SECRET_KEY", "zunara-secret-2026")
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -106,7 +106,7 @@ CLINIC_DASHBOARD = """
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bloom — Clinic Dashboard</title>
+    <title>Zunara — Clinic Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', sans-serif; background: #fce4ec; min-height: 100vh; padding: 20px; }
@@ -132,7 +132,7 @@ CLINIC_DASHBOARD = """
 </head>
 <body>
     <div class="header">
-        <h1>🌸 Bloom Dashboard</h1>
+        <h1>🌸 Zunara Dashboard</h1>
         <p>Anonymous patient insights</p>
     </div>
     <div class="clinic-name">
@@ -249,7 +249,7 @@ def chat():
         "failed": "dealing with a failed IVF cycle and grief"
     }
 
-    system_prompt = f"""You are Bloom, a warm and deeply empathetic emotional support companion exclusively for IVF patients.
+    system_prompt = f"""You are Zunara, a warm and deeply empathetic emotional support companion exclusively for IVF patients.
 
 The user is currently {stage_context.get(stage, 'going through IVF')}.
 {f"Their current mood is: {mood}" if mood else ""}
@@ -314,8 +314,8 @@ def feedback():
 def clinic_dashboard(code):
     code = code.upper()
     admin_key = request.args.get("key", "")
-    if admin_key != os.environ.get("ADMIN_KEY", "bloom-admin-2026"):
-        return "Unauthorized — please contact Bloom support", 401
+    if admin_key != os.environ.get("ADMIN_KEY", "zunara-admin-2026"):
+        return "Unauthorized — please contact Zunara support", 401
 
     clinic_codes = db_get_clinic_codes()
     if code not in clinic_codes:
@@ -355,7 +355,7 @@ def show_stats():
 @app.route("/admin")
 def admin():
     password = request.args.get("key", "")
-    if password != os.environ.get("ADMIN_KEY", "bloom-admin-2026"):
+    if password != os.environ.get("ADMIN_KEY", "zunara-admin-2026"):
         return "Unauthorized", 401
     return jsonify({
         "stats": db_get_stats(),

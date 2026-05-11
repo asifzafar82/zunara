@@ -22,7 +22,7 @@ def get_headers():
         "Prefer": "return=representation"
     }
 
-FREE_DAILY_LIMIT = 5
+FREE_DAILY_LIMIT = 50
 
 # --- Supabase helpers ---
 

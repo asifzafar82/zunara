@@ -56,7 +56,7 @@ async function validateCode() {
 
 function startFreeChat() {
     isClinicUser = false;
-    messageCountToday = parseInt(localStorage.getItem('bloom_msg_count_' + today()) || '0');
+    messageCountToday = parseInt(localStorage.getItem('bloom_msg_count_v2_' + today())
     document.getElementById('welcomeScreen').style.display = 'none';
     startApp();
 }
@@ -152,7 +152,7 @@ async function sendMessage() {
 
             // Save count for free users
             if (!isClinicUser) {
-                localStorage.setItem('bloom_msg_count_' + today(), messageCountToday);
+                localStorage.setItem('bloom_msg_count_v2_' + today(), messageCountToday)
                 const remaining = FREE_DAILY_LIMIT - messageCountToday;
                 document.getElementById('accessBadge').textContent = `🆓 ${remaining} messages left today`;
                 if (remaining <= 0) showUpgradePrompt();
